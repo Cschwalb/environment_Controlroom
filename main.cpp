@@ -4,8 +4,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-
-
+#include <mysql/mysql.h>
 class EnvironmentData{
 
 public: // start public here
@@ -76,11 +75,13 @@ public: // start public here
 // function prototypes
 void getDataFromPi(EnvironmentData&);
 void executePython();
+void storeToDB(std::string sConn);
 int main() {
     executePython();
     EnvironmentData ed;
     getDataFromPi(ed);
     ed.ToFloatingString();
+    storeToDB("test");
     return 0;
 }
 
@@ -113,4 +114,35 @@ void getDataFromPi(EnvironmentData &ed)
     fin.close();
 }
 
+void storeToDB(std::string sConn)
+{
+	MYSQL *conn;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	char *server = "localhost";
+	char *user = "caleb";
+	char *password = "toor";
+	char *database = "ENVIRONMENT";
+
+	if (!mysql_real_connect(conn, server, user, password,database, 0, NULL, 0)){
+		fprintf(stderr, "%s\n", mysql_error(conn));
+		exit(1);
+	}
+
+	if(mysql_query(conn, "show tables;")){
+		exit(2);
+	}
+	res = mysql_use_result(conn);
+
+	printf("Tables in db :\n");
+
+	while((row = mysql_fetch_row(res)) != NULL){
+		printf("%s \n", row[0]);
+
+	}
+
+	mysql_free_result(res);
+	mysql_close(conn);
+
+}
 
