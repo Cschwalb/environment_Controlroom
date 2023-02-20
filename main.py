@@ -1,6 +1,7 @@
 # api for cpp to call sense information
 #  By:  Caleb Schwalb
 #  6/19/2022
+#  Updated 2/20/2023 for database activity with mariadb
 from sense_hat import SenseHat
 import time
 import csv
@@ -11,15 +12,21 @@ import sys
 def storeToDB():
     try:
         conn = mariadb.connect(user = "root",
-                               password = "toor",
+                               password = "",
                                host = "localhost",
                                port = 3306,
-                               database = "ENVIRONMENT")
+                               database = "data")
     except mariadb.Error as e:
         print(f"error connecting to mariaDB platform {e}")
         sys.exit(1)
     cur = conn.cursor()
-    cur.execute("select * from ENVIRONMENT")
+    try:
+        cur.execute("INSERT INTO ENVIRONMENT VALUES(?,?,?,CURRENT_TIME)",(getTemp(), getPressure(), getHumidity()))
+    except mariadb.Error as e:
+        print(f"Error:{e}")
+
+    conn.commit()
+
     conn.close()
 
 
@@ -56,3 +63,4 @@ def runSensorCSVData():
 
 if __name__ == '__main__':
     runSensorCSVData()
+    storeToDB()

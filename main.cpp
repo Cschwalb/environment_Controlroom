@@ -75,13 +75,13 @@ public: // start public here
 // function prototypes
 void getDataFromPi(EnvironmentData&);
 void executePython();
-void storeToDB(std::string sConn);
+void storeToDB();
 int main() {
     executePython();
     EnvironmentData ed;
     getDataFromPi(ed);
     ed.ToFloatingString();
-    storeToDB("test");
+    //storeToDB();
     return 0;
 }
 
@@ -114,15 +114,15 @@ void getDataFromPi(EnvironmentData &ed)
     fin.close();
 }
 
-void storeToDB(std::string sConn)
+void storeToDB()
 {
 	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	char *server = "localhost";
-	char *user = "caleb";
+	char *user = "root";
 	char *password = "toor";
-	char *database = "ENVIRONMENT";
+	char *database = "data";
 
 	if (!mysql_real_connect(conn, server, user, password,database, 0, NULL, 0)){
 		fprintf(stderr, "%s\n", mysql_error(conn));
