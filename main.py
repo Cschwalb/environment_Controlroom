@@ -21,12 +21,41 @@ def storeToDB():
         sys.exit(1)
     cur = conn.cursor()
     try:
-        cur.execute("INSERT INTO ENVIRONMENT VALUES(?,?,?,CURRENT_TIME)",(getTemp(), getPressure(), getHumidity()))
+        cur.execute("INSERT INTO ENVIRONMENT VALUES(?,?,?,CURRENT_TIME)", (getTemp(), getPressure(), getHumidity()))
     except mariadb.Error as e:
         print(f"Error:{e}")
 
     conn.commit()
 
+    conn.close()
+
+def GetInfoAndStore():
+    Sensor = SenseHat()
+    humidity = Sensor.humidity
+    temp = Sensor.temp
+    TemperatureC = temp / 2.5 + 16
+    tempF = TemperatureC * (9/5) + 32
+    pressure = Sensor.pressure
+    if tempF == 60.8 or humidity == 0 or pressure == 0:
+        print(f"Had to restart getInfoAndStore!")
+        GetInfoAndStore()
+
+    try:
+        conn = mariadb.connect(user = "root",
+                                password = "",
+                                host = "localhost",
+                                port = 3306,
+                                database = "data")
+    except mariadb.Error as e:
+        print(f"error connecting to mariaDB platform {e}")
+        sys.exit(1)
+    cur = conn.cursor()
+    try:
+        cur.execute("INSERT INTO ENVIRONMENT VALUES (?,?,?,CURRENT_TIME)", (tempF, pressure, humidity))
+    except mariadb.Error as e:
+        print(f"error:{e}")
+
+    conn.commit()
     conn.close()
 
 
@@ -62,5 +91,4 @@ def runSensorCSVData():
 
 
 if __name__ == '__main__':
-    runSensorCSVData()
-    storeToDB()
+    GetInfoAndStore()
