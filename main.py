@@ -29,6 +29,25 @@ def storeToDB():
 
     conn.close()
 
+def storeToDBWithParams(temp, pressure, humidity):
+    try:
+        conn = mariadb.connect(user = "root",
+                               password = "",
+                               host = "localhost",
+                               port = 3306,
+                               database = "data")
+    except mariadb.Error as e:
+        print(f"error connecting to mariaDB platform {e}")
+        sys.exit(1)
+    cur = conn.cursor()
+    try:
+        cur.execute("INSERT INTO ENVIRONMENT VALUES(?,?,?,CURRENT_TIME)", (temp, pressure, humidity))
+    except mariadb.Error as e:
+        print(f"Error:{e}")
+
+    conn.commit()
+    conn.close()
+
 def GetInfoAndStore():
     Sensor = SenseHat()
     humidity = Sensor.humidity
@@ -58,6 +77,16 @@ def GetInfoAndStore():
     conn.commit()
     conn.close()
 
+def storeEnvironment():
+    Sensor = SenseHat()
+    humidity = Sensor.humidity
+    temp = Sensor.temp
+    TemperatureC = temp / 2.5 + 16
+    tempF = TemperatureC * (9/5) + 32
+    pressure = Sensor.pressure
+    if tempF == 60.8 or humidity == 0 or pressure == 0:
+        storeEnvironment()
+    storeToDBWithParams(tempF, pressure, humidity)
 
 def getHumidity():
     humiditySensor = SenseHat()
@@ -91,4 +120,4 @@ def runSensorCSVData():
 
 
 if __name__ == '__main__':
-    GetInfoAndStore()
+    storeEnvironment()
